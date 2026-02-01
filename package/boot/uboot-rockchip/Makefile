@@ -184,13 +184,6 @@ define U-Boot/rk3528/Default
   TPL:=$(RK3528_TPL)
 endef
 
-define U-Boot/hinlink-h28k-rk3528
-  $(U-Boot/rk3528/Default)
-  NAME:=HINLINK H28K
-  BUILD_DEVICES:= \
-    hinlink_h28k
-endef
-
 define U-Boot/mangopi-m28c-rk3528
   $(U-Boot/rk3528/Default)
   NAME:=MangoPi M28C
@@ -536,7 +529,6 @@ UBOOT_TARGETS := \
   roc-cc-rk3328 \
   rock64-rk3328 \
   rock-pi-e-rk3328 \
-  hinlink-h28k-rk3528 \
   mangopi-m28c-rk3528 \
   mangopi-m28k-rk3528 \
   radxa-e20c-rk3528 \
@@ -593,8 +585,6 @@ UBOOT_CUSTOMIZE_CONFIG := \
 		--disable SPL_FIT_SIGNATURE \
 		--disable USB_FUNCTION_FASTBOOT \
 		--disable VIDEO \
-		--set-val SPL_LOAD_FIT_ADDRESS 0x0 \
-		--set-val TEXT_BASE 0x00200000 \
 	)
 
 UBOOT_MAKE_FLAGS += \
@@ -606,7 +596,7 @@ define Build/InstallDev
 ifneq ($(TPL),)
 	$(CP) $(PKG_BUILD_DIR)/u-boot-rockchip.bin $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-u-boot-rockchip.bin
 else
-	$(STAGING_DIR_IMAGE)/loaderimage --pack --uboot $(PKG_BUILD_DIR)/u-boot-dtb.bin $(PKG_BUILD_DIR)/uboot.img 0x200000
+	$(STAGING_DIR_IMAGE)/loaderimage --pack --uboot $(PKG_BUILD_DIR)/u-boot-dtb.bin $(PKG_BUILD_DIR)/uboot.img 0x800000
 	$(CP) $(PKG_BUILD_DIR)/uboot.img $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-uboot.img
 endif
 endef
