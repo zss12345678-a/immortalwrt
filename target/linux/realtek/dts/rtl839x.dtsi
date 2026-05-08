@@ -236,6 +236,11 @@
 				#address-cells = <1>;
 				#size-cells = <0>;
 			};
+			mdio_bus1: mdio-bus@1 {
+				reg = <1>;
+				#address-cells = <1>;
+				#size-cells = <0>;
+			};
 		};
 
 		mdio_aux: mdio-aux {
@@ -306,6 +311,14 @@
 			compatible = "realtek,rtl8390-thermal";
 			#thermal-sensor-cells = <0>;
 		};
+
+		switch0: ethernet-switch {
+			compatible = "realtek,rtl8392-switch", "realtek,otto-switch";
+			status = "okay";
+
+			interrupt-parent = <&intc>;
+			interrupts = <20 2>;
+		};
 	};
 
 	pinmux@1b000004 {
@@ -345,6 +358,11 @@
 		mdio_aux_mdx: aux-mdx-pins {
 			pinctrl-single,bits = <0x0 0x100000 0x1c0000>;
 		};
+
+		/* disable port LED offloading */
+		port_led_offload: port-led-offload {
+			pinctrl-single,bits = <0x0 0x0 0x20>;
+		};
 	};
 
 	sram0: sram@9f000000 {
@@ -353,14 +371,6 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 		ranges = <0 0x9f000000 0x18000>;
-	};
-
-	switch0: switch@1b000000 {
-		status = "okay";
-		compatible = "realtek,rtl8392-switch", "realtek,otto-switch";
-
-		interrupt-parent = <&intc>;
-		interrupts = <20 2>;
 	};
 
 	thermal_zones: thermal-zones {
