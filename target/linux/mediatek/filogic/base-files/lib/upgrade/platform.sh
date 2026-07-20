@@ -24,6 +24,27 @@ buffalo_initial_setup()
 	ubiformat /dev/mtd$mtdnum -y
 }
 
+jiorouter_initial_setup()
+{
+	[ "$(rootfs_type)" = "tmpfs" ] || return 0
+
+	local mtdnum="$( find_mtd_index ubi )"
+	if [ ! "$mtdnum" ]; then
+		echo "unable to find mtd partition ubi"
+		return 1
+	fi
+
+	ubidetach -m "$mtdnum" 2>/dev/null
+	ubiformat /dev/mtd$mtdnum -y
+	ubiattach -m "$mtdnum"
+	ubimkvol /dev/ubi0 -n 0 -N u-boot-env -s 0x80000
+
+	# Set boot arguments in freshly created U-Boot environment
+	fw_setenv bootcmd 'ubi read 46000000 kernel;fdt addr $(fdtcontroladdr);fdt rm /signature;bootm 0x46000000'
+	fw_setenv bootdelay 0
+	fw_setenv ipaddr ''
+}
+
 xiaomi_initial_setup()
 {
 	# initialize UBI and setup uboot-env if it's running on initramfs
@@ -128,6 +149,9 @@ platform_do_upgrade() {
 	cmcc,rax3000m|\
 	cmcc,rax3000me|\
 	comfast,cf-wr632ax-ubootmod|\
+	creatlentem,clt-r30b1-ubi|\
+	cudy,m3000-v1-ubootmod|\
+	cudy,m3000-v2-yt8821-ubootmod|\
 	cudy,tr3000-v1-ubootmod|\
 	cudy,wbr3000uax-v1-ubootmod|\
 	cudy,wr3000e-v1-ubootmod|\
@@ -135,6 +159,7 @@ platform_do_upgrade() {
 	cudy,wr3000h-v1-ubootmod|\
 	cudy,wr3000p-v1-ubootmod|\
 	gatonetworks,gdsp|\
+	globitel,bt-r320|\
 	h3c,magic-nx30-pro|\
 	imou,hx21|\
 	jcg,q30-pro|\
@@ -144,6 +169,7 @@ platform_do_upgrade() {
 	mediatek,mt7981-rfb|\
 	mediatek,mt7988a-rfb|\
 	mercusys,mr90x-v1-ubi|\
+	netis,eap930-v1|\
 	netis,nx30v2|\
 	netis,nx31|\
 	netis,nx32u|\
@@ -152,6 +178,7 @@ platform_do_upgrade() {
 	netcore,n60|\
 	netcore,n60-pro|\
 	qihoo,360t7|\
+	qihoo,360t7-ubi|\
 	routerich,ax3000-ubootmod|\
 	routerich,be7200|\
 	snr,snr-cpe-ax2|\
@@ -162,6 +189,7 @@ platform_do_upgrade() {
 	tplink,tl-xdr6086|\
 	tplink,tl-xdr6088|\
 	tplink,tl-xtr8488|\
+	wavlink,wl-wnt100x3-ubootmod|\
 	xiaomi,mi-router-ax3000t-ubootmod|\
 	xiaomi,redmi-router-ax6000-ubootmod|\
 	xiaomi,mi-router-wr30u-ubootmod|\
@@ -179,6 +207,7 @@ platform_do_upgrade() {
 	glinet,gl-mt6000|\
 	glinet,gl-x3000|\
 	glinet,gl-xe3000|\
+	hiveton,h5000m|\
 	huasifei,wh3000-emmc|\
 	huasifei,wh3000-pro-emmc|\
 	smartrg,sdg-8612|\
@@ -209,12 +238,15 @@ platform_do_upgrade() {
 	xiaomi,redmi-router-ax6000-stock)
 		CI_KERN_UBIPART="ubi_kernel"
 		CI_ROOT_UBIPART="ubi"
+		CI_DATA_UBIPART="ubi"
 		nand_do_upgrade "$1"
 		;;
 	buffalo,wsr-6000ax8|\
 	cudy,wr3000h-v1|\
 	cudy,wr3000p-v1|\
-	huasifei,wh3000-pro-nand)
+	huasifei,wh3000-pro-nand|\
+	huasifei,wh3000r-nand|\
+	jiorouter,ax6000-jidu6101)
 		CI_UBIPART="ubi"
 		nand_do_upgrade "$1"
 		;;
@@ -223,6 +255,7 @@ platform_do_upgrade() {
 	kebidumei,ax3000-u22|\
 	totolink,x6000r|\
 	wavlink,wl-wn573hx3|\
+	wavlink,wl-wnt100x3|\
 	widelantech,wap430x|\
 	yuncore,ax835)
 		default_do_upgrade "$1"
@@ -271,7 +304,8 @@ platform_do_upgrade() {
 		nand_do_flash_file "$1" || nand_do_upgrade_failed
 		nand_do_upgrade_success
 		;;
-	tplink,fr365-v1)
+	tplink,fr365-v1|\
+	zbtlink,zbt-z8803be)
 		CI_UBIPART="ubi"
 		CI_KERNPART="kernel"
 		CI_ROOTPART="rootfs"
@@ -338,6 +372,9 @@ platform_check_image() {
 	cmcc,rax3000m|\
 	cmcc,rax3000me|\
 	comfast,cf-wr632ax-ubootmod|\
+	creatlentem,clt-r30b1-ubi|\
+	cudy,m3000-v1-ubootmod|\
+	cudy,m3000-v2-yt8821-ubootmod|\
 	cudy,tr3000-v1-ubootmod|\
 	cudy,wbr3000uax-v1-ubootmod|\
 	cudy,wr3000e-v1-ubootmod|\
@@ -345,6 +382,7 @@ platform_check_image() {
 	cudy,wr3000h-v1-ubootmod|\
 	cudy,wr3000p-v1-ubootmod|\
 	gatonetworks,gdsp|\
+	globitel,bt-r320|\
 	h3c,magic-nx30-pro|\
 	imou,lc-hx3001|\
 	jcg,q30-pro|\
@@ -355,11 +393,13 @@ platform_check_image() {
 	mediatek,mt7988a-rfb|\
 	mercusys,mr90x-v1-ubi|\
 	nokia,ea0326gmp|\
+	netis,eap930-v1|\
 	netis,nx32u|\
 	openwrt,one|\
 	netcore,n60|\
 	netcore,n60-pro|\
 	qihoo,360t7|\
+	qihoo,360t7-ubi|\
 	routerich,ax3000-ubootmod|\
 	tplink,tl-7dr7230-v1|\
 	tplink,tl-7dr7230-v2|\
@@ -368,6 +408,7 @@ platform_check_image() {
 	tplink,tl-xdr6086|\
 	tplink,tl-xdr6088|\
 	tplink,tl-xtr8488|\
+	wavlink,wl-wnt100x3-ubootmod|\
 	xiaomi,mi-router-ax3000t-ubootmod|\
 	xiaomi,redmi-router-ax6000-ubootmod|\
 	xiaomi,mi-router-wr30u-ubootmod|\
@@ -377,6 +418,7 @@ platform_check_image() {
 		;;
 	creatlentem,clt-r30b1|\
 	creatlentem,clt-r30b1-112m|\
+	hiveton,h5000m|\
 	nradio,c8-668gl)
 		# tar magic `ustar`
 		magic="$(dd if="$1" bs=1 skip=257 count=5 2>/dev/null)"
@@ -409,6 +451,8 @@ platform_copy_config() {
 	glinet,gl-mt6000|\
 	glinet,gl-x3000|\
 	glinet,gl-xe3000|\
+	globitel,bt-r320|\
+	hiveton,h5000m|\
 	huasifei,wh3000-emmc|\
 	huasifei,wh3000-pro-emmc|\
 	jdcloud,re-cp-03|\
@@ -467,6 +511,9 @@ platform_pre_upgrade() {
 
 		[ -z "$delay" ] || [ "$delay" -eq "0" ] && \
 			fw_setenv bootmenu_delay 3
+		;;
+	jiorouter,ax6000-jidu6101)
+		jiorouter_initial_setup
 		;;
 	xiaomi,mi-router-ax3000t|\
 	xiaomi,mi-router-wr30u-stock|\
