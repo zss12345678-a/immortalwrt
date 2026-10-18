@@ -35,6 +35,7 @@ case "$FIRMWARE" in
 		ath11k_patch_mac $(macaddr_add $(mtd_get_mac_binary "0:art" 0x6) 2) 0
 		ath11k_set_macflag
 		;;
+	linksys,mr2000|\
 	linksys,mr5500|\
 	linksys,mx2000|\
 	linksys,mx5500|\
@@ -52,6 +53,12 @@ case "$FIRMWARE" in
 		ath11k_remove_regdomain
 		ath11k_set_macflag
 		;;
+	mercusys,mr80x-v2)
+		caldata_extract "0:art" 0x1000 0x20000
+		label_mac=$(get_mac_binary "/tmp/tp_data/default-mac" 0)
+		[ -n "$label_mac" ] && ath11k_patch_mac "$(macaddr_add "$label_mac" -1)" 0
+		ath11k_set_macflag
+		;;
 	tplink,archer-ax55-v1)
 		caldata_extract "0:ART" 0x1000 0x20000
 		label_mac=$(get_mac_binary "/tmp/tp_data/default-mac" 0)
@@ -65,6 +72,12 @@ case "$FIRMWARE" in
 		ath11k_patch_mac $label_mac 0
 		ath11k_set_macflag
 		;;
+	tplink,re700x)
+		caldata_extract "0:art" 0x1000 0x20000
+		label_mac=$(get_mac_binary /tmp/factory_data/default-mac 0)
+		ath11k_patch_mac $(macaddr_add $label_mac 1) 0
+		ath11k_set_macflag
+		;;
 	xiaomi,ax6000|\
 	xiaomi,redmi-ax5400)
 		caldata_extract "0:art" 0x1000 0x20000
@@ -75,6 +88,10 @@ case "$FIRMWARE" in
 		label_mac=$(mtd_get_mac_binary 0:ART 0)
 		ath11k_patch_mac $(macaddr_add $label_mac 2) 0
 		ath11k_remove_regdomain
+		ath11k_set_macflag
+		;;
+	wallys,dr5018s)
+		caldata_extract "0:ART" 0x1000 0x20000
 		ath11k_set_macflag
 		;;
 	esac
@@ -102,6 +119,7 @@ case "$FIRMWARE" in
 		ath11k_patch_mac $(macaddr_add $(get_mac_label_dt) 4) 0
 		ath11k_set_macflag
 		;;
+	linksys,mr2000|\
 	linksys,mx2000)
 		caldata_extract "0:art" 0x26800 0x20000
 		label_mac=$(mtd_get_mac_ascii devinfo hw_mac_addr)
@@ -116,6 +134,12 @@ case "$FIRMWARE" in
 		ath11k_remove_regdomain
 		ath11k_set_macflag
 		;;
+	mercusys,mr80x-v2)
+		caldata_extract "0:art" 0x26800 0x20000
+		label_mac=$(get_mac_binary "/tmp/tp_data/default-mac" 0)
+		[ -n "$label_mac" ] && ath11k_patch_mac "$(macaddr_add "$label_mac" -2)" 0
+		ath11k_set_macflag
+		;;
 	tplink,archer-ax55-v1)
 		caldata_extract "0:ART" 0x26800 0x20000
 		label_mac=$(get_mac_binary "/tmp/tp_data/default-mac" 0)
@@ -123,11 +147,21 @@ case "$FIRMWARE" in
 		ath11k_set_macflag
 		ath11k_remove_regdomain
 		;;
+	tplink,re700x)
+		caldata_extract "0:art" 0x26800 0x20000
+		label_mac=$(get_mac_binary /tmp/factory_data/default-mac 0)
+		ath11k_patch_mac $(macaddr_add $label_mac 2) 0
+		ath11k_set_macflag
+		;;
 	yuncore,ax830)
 		caldata_extract "0:ART" 0x4c000 0x20000
 		label_mac=$(mtd_get_mac_binary 0:ART 0)
 		ath11k_patch_mac $(macaddr_add $label_mac 3) 0
 		ath11k_remove_regdomain
+		ath11k_set_macflag
+		;;
+	wallys,dr5018s)
+		caldata_extract "0:ART" 0x26800 0x20000
 		ath11k_set_macflag
 		;;
 	esac
@@ -179,6 +213,10 @@ case "$FIRMWARE" in
 		label_mac=$(mtd_get_mac_binary 0:ART 0)
 		ath11k_patch_mac $(macaddr_add $label_mac 3) 0
 		ath11k_remove_regdomain
+		ath11k_set_macflag
+		;;
+	wallys,dr5018s)
+		caldata_extract "0:ART" 0x4c000 0x20000
 		ath11k_set_macflag
 		;;
 	esac
